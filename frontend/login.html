@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Page</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+      }
+      .container {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 400px;
+        max-width: 90%;
+        text-align: center;
+      }
+      h1 {
+        margin-bottom: 20px;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+      }
+      label {
+        margin-top: 10px;
+      }
+      input {
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: calc(100% - 22px);
+      }
+      button {
+        margin-top: 20px;
+        padding: 10px 15px;
+        border: none;
+        background-color: #0077ff;
+        color: white;
+        font-size: 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #3b83ef;
+      }
+      .signup-link {
+        margin-top: 10px;
+        display: block;
+        color: #007bff;
+        text-decoration: none;
+      }
+      .signup-link:hover {
+        text-decoration: underline;
+      }
+      .error-message {
+        color: red;
+        margin-top: 10px;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Login</h1>
+      <form id="loginForm">
+        <label for="email">Email</label>
+        <input type="email" id="email" required />
+
+        <label for="password">Password</label>
+        <input type="password" id="password" required />
+
+        <button type="submit">Login</button>
+      </form>
+      <a href="#" id="forgotPasswordLink" class="signup-link"
+        >Forgot Password?</a
+      >
+      <a href="#" id="signupLink" class="signup-link">New user? Signup</a>
+      <div class="error-message" id="error-message"></div>
+    </div>
+
+    <div class="container hidden" id="forgotPasswordContainer">
+      <h1>Forgot Password</h1>
+      <form id="forgotPasswordForm">
+        <label for="forgotEmail">Email</label>
+        <input type="email" id="forgotEmail" required />
+        <button type="submit">Submit</button>
+      </form>
+      <a href="#" id="backToLoginLink" class="signup-link">Back to Login</a>
+      <div class="error-message" id="forgot-error-message"></div>
+    </div>
+
+    <script>
+      const apiUrl = "http://localhost:5000/user/login";
+
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+
+          const loginData = { email, password };
+
+          try {
+            const response = await fetch(apiUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(loginData),
+            });
+            const data = await response.json();
+            console.log(data);
+            if (response.ok) {
+              localStorage.setItem("token", data.token);
+              window.location.href = "/frontend/groupchats/chats.html";
+            } else {
+              document.getElementById("error-message").textContent =
+                data.message;
+            }
+          } catch (error) {
+            console.error("Error during login:", error);
+            document.getElementById("error-message").textContent =
+              "An unexpected error occurred";
+          }
+        });
+
+      document
+        .getElementById("signupLink")
+        .addEventListener("click", (event) => {
+          event.preventDefault();
+          window.location.href = "/frontend/signup.html";
+        });
+
+      document
+        .getElementById("forgotPasswordLink")
+        .addEventListener("click", (event) => {
+          event.preventDefault();
+          document
+            .getElementById("forgotPasswordContainer")
+            .classList.remove("hidden");
+          document
+            .getElementById("loginForm")
+            .parentElement.classList.add("hidden");
+        });
+
+      document
+        .getElementById("backToLoginLink")
+        .addEventListener("click", (event) => {
+          event.preventDefault();
+          document
+            .getElementById("forgotPasswordContainer")
+            .classList.add("hidden");
+          document
+            .getElementById("loginForm")
+            .parentElement.classList.remove("hidden");
+        });
+
+      document
+        .getElementById("forgotPasswordForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const email = document.getElementById("forgotEmail").value;
+
+          try {
+            const response = await fetch(
+              `http://localhost:5000/password/forgotpassword`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+              }
+            );
+
+            if (response.ok) {
+              alert("Password reset link has been sent to your email.");
+            } else {
+              const data = await response.json();
+              document.getElementById("forgot-error-message").textContent =
+                data.message;
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            document.getElementById("forgot-error-message").textContent =
+              "Error sending password reset link.";
+          }
+        });
+    </script>
+  </body>
+</html>
