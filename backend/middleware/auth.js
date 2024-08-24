@@ -5,7 +5,7 @@ require("dotenv").config();
 let jwtSecretKey = process.env.JWT_SECRET;
 
 exports.authenticate = async (req, res, next) => {
-  let token = req.header("Authorization");
+  let token = req.headers.authorization;
 
   try {
     const decoded = jwt.verify(token, jwtSecretKey);

@@ -57,11 +57,25 @@ exports.loginUser = (req, res) => {
           { userId: user.id, isPremium: user.isPremium },
           jwtSecretKey
         );
-        res.status(200).json({ token, message: "Login successful" });
+        res
+          .status(200)
+          .json({ token, username: user.name, message: "Login successful" });
       });
     })
     .catch((err) => {
       console.log(err);
       res.status(500).json({ message: "Error during login" });
     });
+};
+
+exports.getUsers = async (req, res, next) => {
+  try {
+    const users = await User.findAll({
+      attributes: ["id", "name", "email"],
+    });
+    res.status(200).json({ users, message: "Fetched all users" });
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).json({ message: "An error occurred while fetching users" });
+  }
 };

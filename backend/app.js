@@ -5,6 +5,10 @@ let port = 5000;
 
 let sequelize = require("./util/database");
 let userRoute = require("./routes/users");
+let chatRoute = require("./routes/chats");
+
+let User = require("./models/user");
+let Chat = require("./models/chat");
 
 let app = express();
 
@@ -14,7 +18,11 @@ app.use(
   })
 );
 app.use(bodyParser.json());
-app.use("/user", userRoute);
+app.use(userRoute);
+app.use(chatRoute);
+
+User.hasMany(Chat, { foreignKey: "userId" });
+Chat.belongsTo(User, { foreignKey: "userId" });
 
 sequelize
   .sync()
