@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Signup Page</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+      }
+      .container {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 400px;
+        max-width: 90%;
+        text-align: center;
+      }
+      h1 {
+        margin-bottom: 20px;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+      }
+      label {
+        margin-top: 10px;
+      }
+      input {
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: calc(100% - 22px);
+      }
+      button {
+        margin-top: 20px;
+        padding: 10px 15px;
+        border: none;
+        background-color: #0077ff;
+        color: white;
+        font-size: 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #3b83ef;
+      }
+      .signup-link {
+        margin-top: 10px;
+        display: block;
+        color: #007bff;
+        text-decoration: none;
+      }
+      .signup-link:hover {
+        text-decoration: underline;
+      }
+      .error-message {
+        color: red;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Signup</h1>
+      <form id="signupForm">
+        <label for="name">Name</label>
+        <input type="text" id="name" required />
+
+        <label for="email">Email</label>
+        <input type="email" id="email" required />
+
+        <label for="phno">Phone number</label>
+        <input type="tel" id="phno" required />
+
+        <label for="password">Password</label>
+        <input type="password" id="password" required />
+
+        <button type="submit">Signup</button>
+      </form>
+      <a href="#" id="loginLink" class="login-link">Existing user? Login</a>
+      <div class="error-message" id="error-message"></div>
+    </div>
+
+    <script>
+      const apiUrl = "http://localhost:5000/user/signup";
+
+      document
+        .getElementById("signupForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const name = document.getElementById("name").value;
+          const email = document.getElementById("email").value;
+          const phno = document.getElementById("phno").value;
+
+          const password = document.getElementById("password").value;
+
+          const userData = { name, email, phno, password };
+
+          try {
+            const response = await fetch(apiUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(userData),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              window.location.href = "/frontend/login.html";
+            } else {
+              document.getElementById("error-message").textContent =
+                data.message;
+            }
+          } catch (error) {
+            console.error("Error during signup:", error);
+            document.getElementById("error-message").textContent =
+              "An unexpected error occurred";
+          }
+        });
+
+      document
+        .getElementById("loginLink")
+        .addEventListener("click", (event) => {
+          event.preventDefault();
+          window.location.href = "/frontend/login.html";
+        });
+    </script>
+  </body>
+</html>
