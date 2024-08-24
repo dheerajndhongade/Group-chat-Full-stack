@@ -39,3 +39,29 @@ exports.createUser = (req, res) => {
         .json({ message: "An error occurred while creating the user" });
     });
 };
+exports.loginUser = (req, res) => {
+  let email = req.body.email;
+  let password = req.body.password;
+
+  User.findOne({ where: { email: email } })
+    .then((user) => {
+      if (!user) {
+        res.status(401).json({ message: "Invalid credentials" });
+      }
+      return bcrypt.compare(password, user.password).then((isValidPassword) => {
+        if (!isValidPassword) {
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        let token = jwt.sign(
+          { userId: user.id, isPremium: user.isPremium },
+          jwtSecretKey
+        );
+        res.status(200).json({ token, message: "Login successful" });
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ message: "Error during login" });
+    });
+};
