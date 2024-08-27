@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   const messagesContainer = document.getElementById("messages");
   const messageForm = document.getElementById("messageForm");
   const messageInput = document.getElementById("messageInput");
+  const fileInput = document.getElementById("fileInput");
+  const fileUploadBtn = document.getElementById("fileUploadBtn");
   const createGroupBtn = document.getElementById("createGroupBtn");
   const createGroupModal = document.getElementById("createGroupModal");
   const closeCreateGroupModal = document.getElementById(
@@ -135,6 +137,64 @@ document.addEventListener("DOMContentLoaded", async function () {
       console.error("Error sending message:", error.message || error);
     }
   }
+
+  async function handleFileUpload(file) {
+    if (!currentGroupId) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/groups/${currentGroupId}/files`,
+        {
+          method: "POST",
+          headers: {
+            authorization: token,
+          },
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to upload file: ${data.message || "Unknown error"}`
+        );
+      }
+
+      // Handle the response here
+      const div = document.createElement("div");
+      div.classList.add("message");
+      div.classList.add(username ? "user" : "other");
+
+      // Create a clickable link for the file URL
+      const link = document.createElement("a");
+      link.href = data.file.url;
+      link.textContent = `File: ${data.file.filename}`;
+      link.target = "_blank"; // Open in a new tab
+
+      // Append the link to the message div
+      div.appendChild(link);
+      messagesContainer.appendChild(div);
+    } catch (error) {
+      console.error("Error uploading file:", error.message || error);
+    }
+  }
+
+  fileUploadBtn.addEventListener("click", () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    console.log(file);
+    if (file) {
+      handleFileUpload(file);
+      fileInput.value = ""; // Clear the file input
+    }
+  });
 
   createGroupBtn.addEventListener("click", () => {
     createGroupModal.classList.add("show");

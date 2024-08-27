@@ -1,6 +1,26 @@
 const Group = require("../models/group");
 const User = require("../models/user");
 const Chat = require("../models/chat");
+const AWS = require("aws-sdk");
+const multer = require("multer");
+const multerS3 = require("multer-s3");
+const File = require("../models/file");
+
+// const s3 = new AWS.S3({
+//   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+//   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+// });
+
+// const upload = multer({
+//   storage: multerS3({
+//     s3: s3,
+//     bucket: process.env.AWS_S3_BUCKET_NAME,
+//     acl: "public-read",
+//     key: function (req, file, cb) {
+//       cb(null, `uploads/${Date.now()}_${file.originalname}`);
+//     },
+//   }),
+// });
 
 exports.postGroup = async (req, res) => {
   const { groupName, users } = req.body;
@@ -234,6 +254,37 @@ exports.getGroupDetails = async (req, res) => {
     res.json(groupDetails);
   } catch (error) {
     console.error("Error fetching group details:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.uploadFile = async (req, res) => {
+  try {
+    console.log(req.file);
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const fileUrl = req.file.location;
+    const fileName = req.file.originalname;
+    const { groupId } = req.params;
+    const currentUserId = req.user.id;
+
+    // Save file URL to the database associated with the group
+    const file = await File.create({ url: fileUrl, groupId });
+
+    const chat = await Chat.create({
+      groupId,
+      userId: currentUserId,
+      message: `File uploaded: ${fileName}-${fileUrl}`,
+    });
+
+    res
+      .status(201)
+      .json({ success: true, file: { url: fileUrl, filename: fileName } });
+  } catch (error) {
+    console.error("Error uploading file:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

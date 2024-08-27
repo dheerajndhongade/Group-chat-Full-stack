@@ -11,6 +11,7 @@ let groupRoute = require("./routes/groups");
 let User = require("./models/user");
 let Chat = require("./models/chat");
 let Group = require("./models/group");
+let File = require("./models/file");
 //let GroupAdmins = require("./models/groupadmins");
 
 let app = express();
@@ -52,6 +53,9 @@ User.belongsToMany(Group, {
 
 Chat.belongsTo(User, { foreignKey: "userId" });
 User.hasMany(Chat, { foreignKey: "userId" });
+
+Chat.hasMany(File, { foreignKey: "chatId" });
+File.belongsTo(Chat, { foreignKey: "chatId" });
 
 sequelize
   .sync()
