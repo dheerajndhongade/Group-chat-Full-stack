@@ -8,11 +8,16 @@
   </head>
   <body>
     <div class="chat-container">
-      <aside class="users-list">
-        <h3>Users</h3>
-        <ul id="users"></ul>
+      <aside class="groups-list">
+        <h3>Groups</h3>
+        <ul id="groups"></ul>
+        <button id="createGroupBtn">Create Group</button>
       </aside>
       <section class="chat-section">
+        <div class="chat-header">
+          <h2 id="groupName">Select a Group</h2>
+          <button id="viewGroupDetailsBtn">View Group Details</button>
+        </div>
         <div class="chat-messages" id="messages"></div>
         <form id="messageForm">
           <input
@@ -26,7 +31,49 @@
       </section>
     </div>
 
+    <!-- Modal for creating a new group -->
+    <div id="createGroupModal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="closeCreateGroupModal">&times;</span>
+        <h2>Create Group</h2>
+        <form id="createGroupForm">
+          <input
+            type="text"
+            id="groupNameInput"
+            placeholder="Group Name"
+            required
+          />
+          <input
+            type="text"
+            id="groupUsersInput"
+            placeholder="Invite Users (comma separated usernames)"
+            required
+          />
+          <button type="submit">Create</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal for group details -->
+    <div id="groupDetailsModal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="closeGroupDetailsModal">&times;</span>
+        <h2>Group Details</h2>
+        <div id="groupDetails"></div>
+        <input type="text" id="searchUserInput" placeholder="Search users..." />
+        <ul id="searchResults"></ul>
+      </div>
+    </div>
+
+    <!-- Modal for adding users -->
+    <div id="addUserModal" class="modal">
+      <div class="modal-content">
+        <span class="close" id="closeAddUserModal">&times;</span>
+        <h2>Add User</h2>
+        <ul id="addUserList"></ul>
+      </div>
+    </div>
+
     <script src="chats.js"></script>
-     
   </body>
 </html>

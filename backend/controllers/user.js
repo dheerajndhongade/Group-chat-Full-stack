@@ -1,6 +1,8 @@
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { Op } = require("sequelize");
+const Group = require("../models/group");
 require("dotenv").config();
 
 let jwtSecretKey = process.env.JWT_SECRET;
@@ -20,9 +22,9 @@ exports.createUser = (req, res) => {
     })
     .then((hashedPassword) => {
       return User.create({
-        name,
-        email,
-        phno,
+        username: name,
+        email: email,
+        phno: phno,
         password: hashedPassword,
       });
     })
@@ -53,13 +55,12 @@ exports.loginUser = (req, res) => {
           return res.status(401).json({ message: "Invalid credentials" });
         }
 
-        let token = jwt.sign(
-          { userId: user.id, isPremium: user.isPremium },
-          jwtSecretKey
-        );
-        res
-          .status(200)
-          .json({ token, username: user.name, message: "Login successful" });
+        let token = jwt.sign({ userId: user.id }, jwtSecretKey);
+        res.status(200).json({
+          token,
+          username: user.username,
+          message: "Login successful",
+        });
       });
     })
     .catch((err) => {
@@ -77,5 +78,52 @@ exports.getUsers = async (req, res, next) => {
   } catch (err) {
     console.error("Error fetching users:", err);
     res.status(500).json({ message: "An error occurred while fetching users" });
+  }
+};
+
+exports.searchUsers = async (req, res) => {
+  const query = req.query.query;
+  const groupId = req.query.groupId; // Group ID passed as a query parameter
+
+  try {
+    // Find the group with the associated members
+    const group = await Group.findByPk(groupId, {
+      include: {
+        model: User,
+        as: "Members",
+        attributes: ["id"], // We only need the user IDs of existing members
+      },
+    });
+
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    // Extract user IDs of the existing group members
+    const existingUserIds = group.Members.map((member) => member.id);
+
+    // Search for users matching the query who are NOT in the group
+    const users = await User.findAll({
+      where: {
+        [Op.and]: [
+          {
+            [Op.or]: [
+              { username: { [Op.like]: `%${query}%` } },
+              { email: { [Op.like]: `%${query}%` } },
+              { phno: { [Op.like]: `%${query}%` } },
+            ],
+          },
+          {
+            id: { [Op.notIn]: existingUserIds },
+          },
+        ],
+      },
+      attributes: ["id", "username", "email", "phno"],
+    });
+
+    res.status(200).json({ users });
+  } catch (error) {
+    console.error("Error searching users:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

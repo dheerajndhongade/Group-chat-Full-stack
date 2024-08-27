@@ -6,9 +6,12 @@ let port = 5000;
 let sequelize = require("./util/database");
 let userRoute = require("./routes/users");
 let chatRoute = require("./routes/chats");
+let groupRoute = require("./routes/groups");
 
 let User = require("./models/user");
 let Chat = require("./models/chat");
+let Group = require("./models/group");
+//let GroupAdmins = require("./models/groupadmins");
 
 let app = express();
 
@@ -19,10 +22,36 @@ app.use(
 );
 app.use(bodyParser.json());
 app.use(userRoute);
+app.use("/groups", groupRoute);
 app.use(chatRoute);
 
-User.hasMany(Chat, { foreignKey: "userId" });
+Group.hasMany(Chat, { foreignKey: "groupId" });
+Chat.belongsTo(Group, { foreignKey: "groupId" });
+
+Group.belongsToMany(User, {
+  through: "UserGroups",
+  as: "Members",
+  foreignKey: "groupId",
+});
+User.belongsToMany(Group, {
+  through: "UserGroups",
+  as: "MemberGroups",
+  foreignKey: "userId",
+});
+
+Group.belongsToMany(User, {
+  through: "GroupAdmins",
+  as: "Admins",
+  foreignKey: "groupId",
+});
+User.belongsToMany(Group, {
+  through: "GroupAdmins",
+  as: "AdminGroups",
+  foreignKey: "userId",
+});
+
 Chat.belongsTo(User, { foreignKey: "userId" });
+User.hasMany(Chat, { foreignKey: "userId" });
 
 sequelize
   .sync()

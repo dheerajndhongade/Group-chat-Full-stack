@@ -1,36 +1,40 @@
+const Group = require("../models/group");
 const User = require("../models/user");
 const Chat = require("../models/chat");
 
-exports.getChats = async (req, res, next) => {
+exports.postChat = async (req, res) => {
+  const { groupId } = req.params;
+  const { message } = req.body;
+  const currentUserId = req.user.id;
+
   try {
-    const chats = await Chat.findAll({
-      include: [
-        {
-          model: User,
-          attributes: ["name"],
-        },
-      ],
-      order: [["createdAt", "ASC"]], // Order by creation time
+    // Verify that the user is a member of the group
+    const group = await Group.findByPk(groupId, {
+      include: {
+        model: User,
+        as: "Members", // Specify the alias for the association
+        attributes: [],
+        where: { id: currentUserId },
+        through: { attributes: [] },
+      },
     });
 
-    // Respond with the list of chat messages
-    res.status(200).json({ chats, message: "Chats retrieved successfully" });
-  } catch (error) {
-    console.error("Error fetching chats:", error);
-    res.status(500).json({ message: "Failed to retrieve chats" });
-  }
-};
+    if (!group) {
+      return res
+        .status(403)
+        .json({ message: "You are not a member of this group" });
+    }
 
-exports.postChat = async (req, res, next) => {
-  try {
-    const { message } = req.body;
+    // Create the chat message
+    const chat = await Chat.create({
+      groupId,
+      userId: currentUserId,
+      message,
+    });
 
-    const newMessage = await req.user.createChat({ message });
-    res
-      .status(201)
-      .json({ message: "Message sent successfully", data: newMessage });
+    res.status(201).json({ success: true, chat });
   } catch (error) {
-    console.error("Error saving message:", error);
-    res.status(500).json({ message: "Failed to send message" });
+    console.error("Error posting chat:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

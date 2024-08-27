@@ -1,14 +1,14 @@
 let Sequelize = require("sequelize");
 let sequelize = require("../util/database");
 
-let User = sequelize.define("users", {
+let User = sequelize.define("User", {
   id: {
     type: Sequelize.INTEGER,
     allowNull: false,
     autoIncrement: true,
     primaryKey: true,
   },
-  name: {
+  username: {
     type: Sequelize.STRING,
     allowNull: false,
   },
